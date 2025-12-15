@@ -119,12 +119,18 @@ async function showNotification(data) {
     if (settings.ticker?.enabled) {
         try {
             const tabs = await chrome.tabs.query({});
+            console.log('Knowtif: Sending to tabs', tabs.length);
             for (const tab of tabs) {
-                if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+                if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://') && !tab.url.startsWith('about:')) {
+                    console.log('Knowtif: Sending to tab', tab.id, tab.url);
                     chrome.tabs.sendMessage(tab.id, {
                         type: 'showNotification',
                         notification: notification
-                    }).catch(() => { });
+                    }).then(response => {
+                        console.log('Knowtif: Tab response', tab.id, response);
+                    }).catch(err => {
+                        console.log('Knowtif: Tab error (content script may not be loaded)', tab.id, err.message);
+                    });
                 }
             }
         } catch (e) {
@@ -331,9 +337,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
+// Inject content script into all existing tabs
+async function injectContentScriptIntoAllTabs() {
+    try {
+        const tabs = await chrome.tabs.query({});
+        for (const tab of tabs) {
+            if (tab.id && tab.url && 
+                !tab.url.startsWith('chrome://') && 
+                !tab.url.startsWith('chrome-extension://') && 
+                !tab.url.startsWith('about:') &&
+                !tab.url.startsWith('edge://') &&
+                !tab.url.startsWith('moz-extension://')) {
+                try {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        files: ['content.js']
+                    });
+                    console.log('Knowtif: Injected content script into tab', tab.id);
+                } catch (e) {
+                    // Tab might not allow script injection
+                    console.log('Knowtif: Could not inject into tab', tab.id, e.message);
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Knowtif: Failed to inject content scripts', e);
+    }
+}
+
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
     console.log('Knowtif: Extension installed');
+    await injectContentScriptIntoAllTabs();
     const settings = await getSettings();
     if (settings.autoConnect && settings.ntfyTopic) {
         connect();

@@ -322,21 +322,27 @@
 
     // Listen for messages from background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        console.log('Knowtif Content: Received message', message.type);
         if (message.type === 'showNotification') {
+            console.log('Knowtif Content: Showing notification in ticker', message.notification);
             loadSettings().then(() => {
                 showInTicker(message.notification);
             });
+            sendResponse({ received: true });
         } else if (message.type === 'settingsUpdated') {
             loadSettings().then(() => {
                 updateTickerAppearance();
             });
+            sendResponse({ received: true });
         } else if (message.type === 'hideTicker') {
             hideTicker();
+            sendResponse({ received: true });
         }
+        return true;
     });
 
     // Initialize
     loadSettings().then(() => {
-        console.log('Knowtif: Content script loaded');
+        console.log('Knowtif: Content script loaded and ready');
     });
 })();
