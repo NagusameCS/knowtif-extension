@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            min-width: 400px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 img {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .section {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #3498db;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #ccc;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #2d2d44;
+            border-radius: 6px;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 13px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .field-hint {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-field input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-field label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .color-field {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-field input[type="color"] {
+            width: 40px;
+            height: 32px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-field input[type="text"] {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #2d2d44;
+            color: #ccc;
+        }
+
+        .btn-secondary:hover {
+            background: #3d3d54;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .saved-message {
+            color: #27ae60;
+            font-size: 13px;
+            display: none;
+        }
+
+        .saved-message.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>
+        <img src="icons/icon-48.png" alt="Knowtif">
+        Knowtif Settings
+    </h1>
+
+    <div class="section">
+        <div class="section-title">Connection</div>
+
+        <div class="field">
+            <label for="ntfyTopic">ntfy.sh Topic</label>
+            <input type="text" id="ntfyTopic" placeholder="knowtif-myrepo-abc12345">
+            <div class="field-hint">Your unique topic from knowtif setup. Find it in your repository's .knowtif.json
+                file.</div>
+        </div>
+
+        <div class="field">
+            <label for="ntfyServer">ntfy.sh Server</label>
+            <input type="text" id="ntfyServer" placeholder="https://ntfy.sh">
+            <div class="field-hint">Leave default unless you're self-hosting ntfy.</div>
+        </div>
+
+        <div class="field checkbox-field">
+            <input type="checkbox" id="autoConnect" checked>
+            <label for="autoConnect">Auto-connect on browser startup</label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Notifications</div>
+
+        <div class="field checkbox-field">
+            <input type="checkbox" id="popupEnabled" checked>
+            <label for="popupEnabled">Show browser notifications</label>
+        </div>
+
+        <div class="field">
+            <label for="popupDuration">Auto-dismiss after (ms)</label>
+            <input type="number" id="popupDuration" value="5000" min="0" step="1000">
+            <div class="field-hint">Set to 0 to disable auto-dismiss.</div>
+        </div>
+
+        <div class="field checkbox-field">
+            <input type="checkbox" id="soundEnabled">
+            <label for="soundEnabled">Play sound on notification</label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Colors</div>
+
+        <div class="field">
+            <label>Info notifications</label>
+            <div class="color-field">
+                <input type="color" id="colorInfoBg" value="#3498db">
+                <input type="text" id="colorInfoBgText" value="#3498db" placeholder="#3498db">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Success notifications</label>
+            <div class="color-field">
+                <input type="color" id="colorSuccessBg" value="#27ae60">
+                <input type="text" id="colorSuccessBgText" value="#27ae60" placeholder="#27ae60">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Failure notifications</label>
+            <div class="color-field">
+                <input type="color" id="colorFailureBg" value="#e74c3c">
+                <input type="text" id="colorFailureBgText" value="#e74c3c" placeholder="#e74c3c">
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <span class="saved-message" id="savedMessage">Settings saved!</span>
+        <button class="btn btn-secondary" id="resetBtn">Reset to defaults</button>
+        <button class="btn btn-primary" id="saveBtn">Save settings</button>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+
+</html>

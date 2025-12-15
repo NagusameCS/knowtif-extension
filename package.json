@@ -1,0 +1,18 @@
+{
+    "name": "knowtif-extension",
+    "displayName": "Knowtif",
+    "description": "Receive GitHub notifications from knowtif with customizable popups and notification history",
+    "version": "1.0.0",
+    "author": "NagusameCS",
+    "license": "MIT",
+    "scripts": {
+        "build": "mkdir -p dist && cp -r src/* dist/ && cp manifest.json dist/ && cp -r icons dist/",
+        "build:firefox": "mkdir -p dist-firefox && cp -r src/* dist-firefox/ && cp manifest-firefox.json dist-firefox/manifest.json && cp -r icons dist-firefox/",
+        "package": "cd dist && zip -r ../knowtif-chrome.zip .",
+        "package:firefox": "cd dist-firefox && zip -r ../knowtif-firefox.zip .",
+        "clean": "rm -rf dist dist-firefox *.zip"
+    },
+    "devDependencies": {
+        "web-ext": "^8.0.0"
+    }
+}

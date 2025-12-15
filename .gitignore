@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-firefox
+*.zip
+
+# LineHook temp files
+.linehook/stats.json

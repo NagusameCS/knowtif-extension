@@ -1,0 +1,16 @@
+{
+  "events": [
+    "push",
+    "workflow_run",
+    "deployment_status",
+    "release",
+    "pull_request"
+  ],
+  "branches": [
+    "main",
+    "master"
+  ],
+  "installed": true,
+  "repoOwner": "NagusameCS",
+  "repoName": "knowtif-extension"
+}

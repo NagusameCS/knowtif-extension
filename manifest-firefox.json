@@ -1,0 +1,43 @@
+{
+    "manifest_version": 2,
+    "name": "Knowtif",
+    "version": "1.0.0",
+    "description": "Receive GitHub notifications from knowtif with customizable popups and notification history",
+    "permissions": [
+        "notifications",
+        "storage",
+        "alarms",
+        "https://ntfy.sh/*"
+    ],
+    "browser_action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon-16.png",
+            "32": "icons/icon-32.png",
+            "48": "icons/icon-48.png",
+            "128": "icons/icon-128.png"
+        }
+    },
+    "icons": {
+        "16": "icons/icon-16.png",
+        "32": "icons/icon-32.png",
+        "48": "icons/icon-48.png",
+        "128": "icons/icon-128.png"
+    },
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": false
+    },
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": false
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "knowtif@nagusame.dev",
+            "strict_min_version": "109.0"
+        }
+    }
+}

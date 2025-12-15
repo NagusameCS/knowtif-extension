@@ -1,0 +1,29 @@
+# Knowtif - GitHub Notifications
+# Docs: https://github.com/NagusameCS/knowtif
+
+name: Knowtif
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+  deployment_status:
+  pull_request:
+    types: [opened, closed]
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.name != 'Knowtif' || github.event_name != 'workflow_run' }}
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npx knowtif@latest action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCORD_WEBHOOK: "https://discord.com/api/webhooks/1449999745358630954/CuBIFobTBxhy9zMhBraKAaBPSWt4Dae8qNUbZS2NWJsSntUVIcUauHm1e4PUt3hESkTD"

@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "mode": "auto",
+  "directories": [
+    "."
+  ],
+  "extensions": [],
+  "exclude": [
+    "node_modules",
+    ".git",
+    "vendor",
+    "dist",
+    "build",
+    "__pycache__",
+    ".venv",
+    "coverage"
+  ],
+  "badges": {
+    "style": "flat",
+    "color": "blue"
+  },
+  "graphs": {
+    "width": 600,
+    "height": 400
+  }
+}
