@@ -14,8 +14,8 @@
             width: 360px;
             max-height: 500px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            background: #0d1117;
+            color: #e6edf3;
         }
 
         .header {
@@ -23,8 +23,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 16px;
-            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
-            border-bottom: 1px solid #2d2d44;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
         }
 
         .header-left {
@@ -49,32 +49,32 @@
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: #888;
+            color: #7d8590;
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #e74c3c;
+            background: #f85149;
         }
 
         .status-dot.connected {
-            background: #27ae60;
+            background: #3fb950;
         }
 
         .actions {
             display: flex;
             gap: 8px;
             padding: 10px 16px;
-            background: #16213e;
-            border-bottom: 1px solid #2d2d44;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
         }
 
         .btn {
             flex: 1;
             padding: 8px 12px;
-            border: none;
+            border: 1px solid #30363d;
             border-radius: 6px;
             font-size: 12px;
             font-weight: 500;
@@ -83,73 +83,81 @@
         }
 
         .btn-primary {
-            background: #3498db;
-            color: white;
+            background: #238636;
+            border-color: #238636;
+            color: #ffffff;
         }
 
         .btn-primary:hover {
-            background: #2980b9;
+            background: #2ea043;
+            border-color: #2ea043;
         }
 
         .btn-secondary {
-            background: #2d2d44;
-            color: #ccc;
+            background: #21262d;
+            color: #c9d1d9;
         }
 
         .btn-secondary:hover {
-            background: #3d3d54;
+            background: #30363d;
+            border-color: #8b949e;
         }
 
         .btn-danger {
-            background: #e74c3c;
+            background: #da3633;
+            border-color: #da3633;
             color: white;
         }
 
         .btn-danger:hover {
-            background: #c0392b;
+            background: #f85149;
+            border-color: #f85149;
         }
 
         .btn-warning {
-            background: #f39c12;
+            background: #9e6a03;
+            border-color: #9e6a03;
             color: white;
         }
 
         .btn-warning:hover {
-            background: #d68910;
+            background: #bb8009;
+            border-color: #bb8009;
         }
 
         .search-bar {
             padding: 8px 16px;
-            background: #16213e;
-            border-bottom: 1px solid #2d2d44;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
         }
 
         .search-input {
             width: 100%;
             padding: 8px 12px;
-            border: 1px solid #2d2d44;
+            border: 1px solid #30363d;
             border-radius: 6px;
-            background: #1a1a2e;
-            color: #eee;
+            background: #0d1117;
+            color: #e6edf3;
             font-size: 12px;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
         }
 
         .search-input::placeholder {
-            color: #666;
+            color: #7d8590;
         }
 
         .pause-indicator {
             display: none;
             padding: 6px 16px;
-            background: rgba(243, 156, 18, 0.15);
-            border-bottom: 1px solid #2d2d44;
+            background: rgba(210, 153, 34, 0.15);
+            border-bottom: 1px solid #30363d;
             font-size: 11px;
-            color: #f39c12;
+            color: #d29922;
             text-align: center;
         }
 
@@ -160,7 +168,7 @@
         .no-results {
             padding: 20px;
             text-align: center;
-            color: #666;
+            color: #7d8590;
             font-size: 12px;
         }
 
@@ -169,21 +177,39 @@
             overflow-y: auto;
         }
 
+        .notifications::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .notifications::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+
+        .notifications::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        .notifications::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+
         .notification {
             display: flex;
             gap: 12px;
             padding: 12px 16px;
-            border-bottom: 1px solid #2d2d44;
+            border-bottom: 1px solid #21262d;
             cursor: pointer;
             transition: background 0.2s;
         }
 
         .notification:hover {
-            background: #16213e;
+            background: #161b22;
         }
 
         .notification.unread {
-            background: rgba(52, 152, 219, 0.1);
+            background: rgba(56, 139, 253, 0.1);
+            border-left: 3px solid #58a6ff;
         }
 
         .notification-icon {
@@ -197,15 +223,15 @@
         }
 
         .notification-icon.info {
-            background: #3498db;
+            background: #388bfd;
         }
 
         .notification-icon.success {
-            background: #27ae60;
+            background: #3fb950;
         }
 
         .notification-icon.failure {
-            background: #e74c3c;
+            background: #f85149;
         }
 
         .notification-icon svg {
@@ -226,11 +252,12 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #e6edf3;
         }
 
         .notification-message {
             font-size: 12px;
-            color: #888;
+            color: #7d8590;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -238,7 +265,7 @@
 
         .notification-time {
             font-size: 11px;
-            color: #666;
+            color: #484f58;
             margin-top: 4px;
         }
 
@@ -246,7 +273,7 @@
             opacity: 0;
             background: none;
             border: none;
-            color: #888;
+            color: #7d8590;
             cursor: pointer;
             padding: 4px;
             transition: opacity 0.2s;
@@ -257,13 +284,13 @@
         }
 
         .notification-delete:hover {
-            color: #e74c3c;
+            color: #f85149;
         }
 
         .empty {
             padding: 40px 20px;
             text-align: center;
-            color: #666;
+            color: #7d8590;
         }
 
         .empty-icon {
@@ -284,14 +311,14 @@
 
         .setup-needed p {
             font-size: 13px;
-            color: #888;
+            color: #7d8590;
             margin-bottom: 12px;
         }
 
         .footer {
             padding: 8px 16px;
-            background: #16213e;
-            border-top: 1px solid #2d2d44;
+            background: #161b22;
+            border-top: 1px solid #30363d;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -299,7 +326,7 @@
 
         .footer-link {
             font-size: 11px;
-            color: #3498db;
+            color: #58a6ff;
             text-decoration: none;
         }
 

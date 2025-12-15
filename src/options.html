@@ -12,8 +12,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            background: #0d1117;
+            color: #e6edf3;
             padding: 20px;
             min-width: 400px;
         }
@@ -33,7 +33,8 @@
         }
 
         .section {
-            background: #16213e;
+            background: #161b22;
+            border: 1px solid #30363d;
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 16px;
@@ -43,7 +44,7 @@
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 12px;
-            color: #3498db;
+            color: #58a6ff;
         }
 
         .field {
@@ -58,29 +59,30 @@
             display: block;
             font-size: 13px;
             margin-bottom: 6px;
-            color: #ccc;
+            color: #c9d1d9;
         }
 
         input[type="text"],
         input[type="number"] {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #2d2d44;
+            border: 1px solid #30363d;
             border-radius: 6px;
-            background: #1a1a2e;
-            color: #eee;
+            background: #0d1117;
+            color: #e6edf3;
             font-size: 13px;
         }
 
         input[type="text"]:focus,
         input[type="number"]:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
         }
 
         .field-hint {
             font-size: 11px;
-            color: #666;
+            color: #7d8590;
             margin-top: 4px;
         }
 
@@ -94,6 +96,7 @@
             width: 16px;
             height: 16px;
             cursor: pointer;
+            accent-color: #238636;
         }
 
         .checkbox-field label {
@@ -110,7 +113,7 @@
         .color-field input[type="color"] {
             width: 40px;
             height: 32px;
-            border: none;
+            border: 1px solid #30363d;
             border-radius: 4px;
             cursor: pointer;
             background: none;
@@ -122,7 +125,7 @@
 
         .btn {
             padding: 10px 20px;
-            border: none;
+            border: 1px solid #30363d;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 500;
@@ -131,21 +134,24 @@
         }
 
         .btn-primary {
-            background: #3498db;
+            background: #238636;
+            border-color: #238636;
             color: white;
         }
 
         .btn-primary:hover {
-            background: #2980b9;
+            background: #2ea043;
+            border-color: #2ea043;
         }
 
         .btn-secondary {
-            background: #2d2d44;
-            color: #ccc;
+            background: #21262d;
+            color: #c9d1d9;
         }
 
         .btn-secondary:hover {
-            background: #3d3d54;
+            background: #30363d;
+            border-color: #8b949e;
         }
 
         .actions {
@@ -156,7 +162,7 @@
         }
 
         .saved-message {
-            color: #27ae60;
+            color: #3fb950;
             font-size: 13px;
             display: none;
         }
@@ -221,24 +227,24 @@
         <div class="field">
             <label>Info notifications</label>
             <div class="color-field">
-                <input type="color" id="colorInfoBg" value="#3498db">
-                <input type="text" id="colorInfoBgText" value="#3498db" placeholder="#3498db">
+                <input type="color" id="colorInfoBg" value="#388bfd">
+                <input type="text" id="colorInfoBgText" value="#388bfd" placeholder="#388bfd">
             </div>
         </div>
 
         <div class="field">
             <label>Success notifications</label>
             <div class="color-field">
-                <input type="color" id="colorSuccessBg" value="#27ae60">
-                <input type="text" id="colorSuccessBgText" value="#27ae60" placeholder="#27ae60">
+                <input type="color" id="colorSuccessBg" value="#3fb950">
+                <input type="text" id="colorSuccessBgText" value="#3fb950" placeholder="#3fb950">
             </div>
         </div>
 
         <div class="field">
             <label>Failure notifications</label>
             <div class="color-field">
-                <input type="color" id="colorFailureBg" value="#e74c3c">
-                <input type="text" id="colorFailureBgText" value="#e74c3c" placeholder="#e74c3c">
+                <input type="color" id="colorFailureBg" value="#f85149">
+                <input type="text" id="colorFailureBgText" value="#f85149" placeholder="#f85149">
             </div>
         </div>
     </div>

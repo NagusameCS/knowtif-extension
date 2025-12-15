@@ -17,9 +17,9 @@ const defaultSettings = {
         sound: true
     },
     colors: {
-        info: { background: '#3498db', text: '#ffffff' },
-        success: { background: '#27ae60', text: '#ffffff' },
-        failure: { background: '#e74c3c', text: '#ffffff' }
+        info: { background: '#388bfd', text: '#ffffff' },
+        success: { background: '#3fb950', text: '#ffffff' },
+        failure: { background: '#f85149', text: '#ffffff' }
     }
 };
 

@@ -27,3 +27,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISCORD_WEBHOOK: "https://discord.com/api/webhooks/1449999745358630954/CuBIFobTBxhy9zMhBraKAaBPSWt4Dae8qNUbZS2NWJsSntUVIcUauHm1e4PUt3hESkTD"
+          NTFY_TOPIC: "knowtif-knowtif-extension-a9950638"
+          NTFY_SERVER: "https://ntfy.sh"
