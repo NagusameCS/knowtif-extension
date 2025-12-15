@@ -80,6 +80,32 @@
             box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
         }
 
+        select.select-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #0d1117;
+            color: #e6edf3;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        select.select-field:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+
+        input[type="range"].range-field {
+            width: calc(100% - 50px);
+            height: 6px;
+            background: #30363d;
+            border-radius: 3px;
+            cursor: pointer;
+            accent-color: #238636;
+        }
+
         .field-hint {
             font-size: 11px;
             color: #7d8590;
@@ -245,6 +271,81 @@
             <div class="color-field">
                 <input type="color" id="colorFailureBg" value="#f85149">
                 <input type="text" id="colorFailureBgText" value="#f85149" placeholder="#f85149">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">News Ticker Banner</div>
+        <div class="field-hint" style="margin-bottom: 12px;">A TV-style scrolling banner that appears on webpages when
+            notifications arrive.</div>
+
+        <div class="field checkbox-field">
+            <input type="checkbox" id="tickerEnabled" checked>
+            <label for="tickerEnabled">Enable news ticker banner</label>
+        </div>
+
+        <div class="field">
+            <label for="tickerPosition">Position</label>
+            <select id="tickerPosition" class="select-field">
+                <option value="top">Top of page</option>
+                <option value="bottom">Bottom of page</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="tickerHeight">Height (pixels)</label>
+            <input type="number" id="tickerHeight" value="32" min="20" max="60" step="2">
+        </div>
+
+        <div class="field">
+            <label for="tickerFontSize">Font size (pixels)</label>
+            <input type="number" id="tickerFontSize" value="13" min="10" max="20" step="1">
+        </div>
+
+        <div class="field">
+            <label for="tickerSpeed">Scroll speed (pixels/second)</label>
+            <input type="number" id="tickerSpeed" value="80" min="20" max="200" step="10">
+            <div class="field-hint">Higher = faster scrolling</div>
+        </div>
+
+        <div class="field">
+            <label for="tickerOpacity">Opacity</label>
+            <input type="range" id="tickerOpacity" min="0.5" max="1" step="0.05" value="0.95" class="range-field">
+            <span id="tickerOpacityValue">95%</span>
+        </div>
+
+        <div class="field checkbox-field">
+            <input type="checkbox" id="tickerPauseOnHover" checked>
+            <label for="tickerPauseOnHover">Pause scrolling on hover</label>
+        </div>
+
+        <div class="field checkbox-field">
+            <input type="checkbox" id="tickerShowIcon" checked>
+            <label for="tickerShowIcon">Show colored indicator dot</label>
+        </div>
+
+        <div class="field">
+            <label>Ticker background color</label>
+            <div class="color-field">
+                <input type="color" id="tickerBgColor" value="#161b22">
+                <input type="text" id="tickerBgColorText" value="#161b22" placeholder="#161b22">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Ticker text color</label>
+            <div class="color-field">
+                <input type="color" id="tickerTextColor" value="#e6edf3">
+                <input type="text" id="tickerTextColorText" value="#e6edf3" placeholder="#e6edf3">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Ticker border color</label>
+            <div class="color-field">
+                <input type="color" id="tickerBorderColor" value="#30363d">
+                <input type="text" id="tickerBorderColorText" value="#30363d" placeholder="#30363d">
             </div>
         </div>
     </div>

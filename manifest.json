@@ -2,15 +2,17 @@
     "manifest_version": 3,
     "name": "Knowtif",
     "version": "1.0.0",
-    "description": "Receive GitHub notifications from knowtif with customizable popups and notification history",
+    "description": "Receive GitHub notifications from knowtif with customizable popups, news ticker, and notification history",
     "permissions": [
         "notifications",
         "storage",
         "alarms",
-        "offscreen"
+        "offscreen",
+        "scripting"
     ],
     "host_permissions": [
-        "https://ntfy.sh/*"
+        "https://ntfy.sh/*",
+        "<all_urls>"
     ],
     "action": {
         "default_popup": "popup.html",
@@ -31,6 +33,17 @@
         "service_worker": "background.js",
         "type": "module"
     },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
     "options_ui": {
         "page": "options.html",
         "open_in_tab": false

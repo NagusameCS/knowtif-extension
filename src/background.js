@@ -13,6 +13,20 @@ const defaultSettings = {
         duration: 5000,
         sound: true
     },
+    ticker: {
+        enabled: true,
+        position: 'top',
+        height: 32,
+        speed: 80,
+        backgroundColor: '#161b22',
+        textColor: '#e6edf3',
+        borderColor: '#30363d',
+        showIcon: true,
+        pauseOnHover: true,
+        opacity: 0.95,
+        fontSize: 13,
+        zIndex: 2147483647
+    },
     colors: {
         info: { background: '#388bfd', text: '#ffffff' },
         success: { background: '#3fb950', text: '#ffffff' },
@@ -97,32 +111,55 @@ async function showNotification(data) {
 
     if (paused) {
         console.log('Knowtif: Notification paused, skipping popup');
-        chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => {});
+        chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => { });
         return;
     }
 
-    if (settings.popup.enabled) {
-        const notifId = `knowtif-${Date.now()}`;
-        chrome.notifications.create(notifId, {
-            type: 'basic',
-            iconUrl: 'icons/icon-128.png',
-            title: notification.title,
-            message: notification.message,
-            priority: type === 'failure' ? 2 : 1
-        });
-
-        if (notification.url) {
-            await chrome.storage.local.set({ [`notif-${notifId}`]: notification.url });
-        }
-
-        if (settings.popup.duration > 0) {
-            setTimeout(() => {
-                chrome.notifications.clear(notifId);
-            }, settings.popup.duration);
+    // Send to all tabs for the news ticker
+    if (settings.ticker?.enabled) {
+        try {
+            const tabs = await chrome.tabs.query({});
+            for (const tab of tabs) {
+                if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+                    chrome.tabs.sendMessage(tab.id, {
+                        type: 'showNotification',
+                        notification: notification
+                    }).catch(() => { });
+                }
+            }
+        } catch (e) {
+            console.error('Knowtif: Failed to send to tabs', e);
         }
     }
 
-    chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => {});
+    // Show system notification
+    if (settings.popup?.enabled) {
+        const notifId = `knowtif-${Date.now()}`;
+        try {
+            await chrome.notifications.create(notifId, {
+                type: 'basic',
+                iconUrl: 'icons/icon-128.png',
+                title: notification.title,
+                message: notification.message,
+                priority: type === 'failure' ? 2 : 1,
+                requireInteraction: false
+            });
+
+            if (notification.url) {
+                await chrome.storage.local.set({ [`notif-${notifId}`]: notification.url });
+            }
+
+            if (settings.popup.duration > 0) {
+                setTimeout(() => {
+                    chrome.notifications.clear(notifId);
+                }, settings.popup.duration);
+            }
+        } catch (e) {
+            console.error('Knowtif: Failed to create notification', e);
+        }
+    }
+
+    chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => { });
 }
 
 // Create offscreen document for SSE
@@ -130,12 +167,12 @@ async function createOffscreenDocument() {
     const existingContexts = await chrome.runtime.getContexts({
         contextTypes: ['OFFSCREEN_DOCUMENT']
     });
-    
+
     if (existingContexts.length > 0) {
         console.log('Knowtif: Offscreen document already exists');
         return;
     }
-    
+
     console.log('Knowtif: Creating offscreen document');
     await chrome.offscreen.createDocument({
         url: 'offscreen.html',
@@ -149,7 +186,7 @@ async function closeOffscreenDocument() {
     const existingContexts = await chrome.runtime.getContexts({
         contextTypes: ['OFFSCREEN_DOCUMENT']
     });
-    
+
     if (existingContexts.length > 0) {
         await chrome.offscreen.closeDocument();
     }
@@ -169,17 +206,17 @@ async function connect() {
 
     try {
         await createOffscreenDocument();
-        
+
         // Give the document a moment to load
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         // Tell offscreen document to start SSE
         await chrome.runtime.sendMessage({ type: 'startSSE', url: url });
-        
+
         isConnected = true;
         await chrome.storage.local.set({ connected: true });
-        chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => {});
-        
+        chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => { });
+
         return true;
     } catch (error) {
         console.error('Knowtif: Failed to connect', error);
@@ -190,18 +227,18 @@ async function connect() {
 // Disconnect
 async function disconnect() {
     console.log('Knowtif: Disconnecting');
-    
+
     try {
         await chrome.runtime.sendMessage({ type: 'stopSSE' });
     } catch (e) {
         // Offscreen document might not exist
     }
-    
+
     await closeOffscreenDocument();
-    
+
     isConnected = false;
     await chrome.storage.local.set({ connected: false });
-    chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => {});
+    chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => { });
 }
 
 // Handle notification clicks
@@ -261,7 +298,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             isPaused().then(paused => {
                 const newPaused = !paused;
                 chrome.storage.local.set({ paused: newPaused });
-                chrome.runtime.sendMessage({ type: 'pauseChange', paused: newPaused }).catch(() => {});
+                chrome.runtime.sendMessage({ type: 'pauseChange', paused: newPaused }).catch(() => { });
                 sendResponse(newPaused);
             });
             return true;
@@ -275,14 +312,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.log('Knowtif: SSE connected (from offscreen)');
             isConnected = true;
             chrome.storage.local.set({ connected: true });
-            chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => {});
+            chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => { });
             break;
 
         case 'sseDisconnected':
             console.log('Knowtif: SSE disconnected (from offscreen)');
             isConnected = false;
             chrome.storage.local.set({ connected: false });
-            chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => {});
+            chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => { });
             break;
 
         case 'sseMessage':
