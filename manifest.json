@@ -6,7 +6,8 @@
     "permissions": [
         "notifications",
         "storage",
-        "alarms"
+        "alarms",
+        "offscreen"
     ],
     "host_permissions": [
         "https://ntfy.sh/*"

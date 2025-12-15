@@ -1,9 +1,7 @@
 // Knowtif Browser Extension - Background Service Worker
-// Uses polling instead of SSE for Manifest V3 compatibility
+// Uses offscreen document for persistent SSE connection
 
-let lastMessageTime = 0;
-let pollInterval = null;
-const POLL_INTERVAL_MS = 5000; // Poll every 5 seconds
+let isConnected = false;
 
 // Default settings
 const defaultSettings = {
@@ -43,7 +41,6 @@ async function addToHistory(notification) {
         timestamp: new Date().toISOString(),
         read: false
     });
-    // Keep only last 100 notifications
     if (history.length > 100) {
         history.pop();
     }
@@ -55,7 +52,6 @@ async function addToHistory(notification) {
 async function updateBadge() {
     const history = await getHistory();
     const unreadCount = history.filter(n => !n.read).length;
-
     if (unreadCount > 0) {
         chrome.action.setBadgeText({ text: unreadCount.toString() });
         chrome.action.setBadgeBackgroundColor({ color: '#f85149' });
@@ -68,7 +64,6 @@ async function updateBadge() {
 function getNotificationType(tags) {
     if (!tags) return 'info';
     const tagList = Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim().toLowerCase());
-
     if (tagList.some(t => ['white_check_mark', 'heavy_check_mark', 'rocket', 'tada', 'star', 'green_circle'].includes(t))) {
         return 'success';
     }
@@ -98,23 +93,16 @@ async function showNotification(data) {
         repo: data.topic || null
     };
 
-    // Add to history (always, even when paused)
     await addToHistory(notification);
 
-    // Skip browser notification if paused
     if (paused) {
         console.log('Knowtif: Notification paused, skipping popup');
-        chrome.runtime.sendMessage({
-            type: 'notification',
-            data: notification
-        }).catch(() => {});
+        chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => {});
         return;
     }
 
-    // Show browser notification if enabled
     if (settings.popup.enabled) {
         const notifId = `knowtif-${Date.now()}`;
-
         chrome.notifications.create(notifId, {
             type: 'basic',
             iconUrl: 'icons/icon-128.png',
@@ -123,12 +111,10 @@ async function showNotification(data) {
             priority: type === 'failure' ? 2 : 1
         });
 
-        // Store URL for click handling
         if (notification.url) {
             await chrome.storage.local.set({ [`notif-${notifId}`]: notification.url });
         }
 
-        // Auto-clear notification after duration
         if (settings.popup.duration > 0) {
             setTimeout(() => {
                 chrome.notifications.clear(notifId);
@@ -136,67 +122,40 @@ async function showNotification(data) {
         }
     }
 
-    // Notify popup if open
-    chrome.runtime.sendMessage({
-        type: 'notification',
-        data: notification
-    }).catch(() => {
-        // Popup not open, ignore
+    chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => {});
+}
+
+// Create offscreen document for SSE
+async function createOffscreenDocument() {
+    const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT']
+    });
+    
+    if (existingContexts.length > 0) {
+        console.log('Knowtif: Offscreen document already exists');
+        return;
+    }
+    
+    console.log('Knowtif: Creating offscreen document');
+    await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['BLOBS'],
+        justification: 'Maintain persistent SSE connection to ntfy.sh for real-time notifications'
     });
 }
 
-// Poll for new messages
-async function pollMessages() {
-    const settings = await getSettings();
+// Close offscreen document
+async function closeOffscreenDocument() {
+    const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT']
+    });
     
-    if (!settings.ntfyTopic) {
-        return;
-    }
-
-    try {
-        // Use since parameter to only get new messages
-        const since = lastMessageTime > 0 ? `since=${lastMessageTime}` : 'poll=1';
-        const url = `${settings.ntfyServer}/${settings.ntfyTopic}/json?${since}`;
-        
-        console.log('Knowtif: Polling', url);
-        
-        const response = await fetch(url);
-        const text = await response.text();
-        
-        if (!text.trim()) {
-            return;
-        }
-
-        // ntfy returns newline-delimited JSON
-        const lines = text.trim().split('\n');
-        
-        for (const line of lines) {
-            if (!line.trim()) continue;
-            
-            try {
-                const data = JSON.parse(line);
-                console.log('Knowtif: Received', data);
-                
-                // Update last message time
-                if (data.time && data.time > lastMessageTime) {
-                    lastMessageTime = data.time;
-                    await chrome.storage.local.set({ lastMessageTime });
-                }
-                
-                // Only process actual messages
-                if (data.event === 'message') {
-                    await showNotification(data);
-                }
-            } catch (e) {
-                console.error('Knowtif: Error parsing message', e, line);
-            }
-        }
-    } catch (error) {
-        console.error('Knowtif: Poll error', error);
+    if (existingContexts.length > 0) {
+        await chrome.offscreen.closeDocument();
     }
 }
 
-// Start polling
+// Connect to ntfy.sh via offscreen document
 async function connect() {
     const settings = await getSettings();
 
@@ -205,69 +164,68 @@ async function connect() {
         return false;
     }
 
-    // Load last message time
-    const stored = await chrome.storage.local.get('lastMessageTime');
-    lastMessageTime = stored.lastMessageTime || Math.floor(Date.now() / 1000);
-    
-    console.log(`Knowtif: Starting polling for ${settings.ntfyTopic}`);
-    
-    // Stop any existing polling
-    disconnect();
-    
-    // Set up alarm for polling (works with MV3 service worker)
-    chrome.alarms.create('knowtif-poll', { periodInMinutes: 0.1 }); // Every 6 seconds
-    
-    // Also do immediate poll
-    await pollMessages();
-    
-    await chrome.storage.local.set({ connected: true });
-    chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => {});
-    
-    return true;
-}
+    const url = `${settings.ntfyServer}/${settings.ntfyTopic}/sse`;
+    console.log(`Knowtif: Connecting to ${url}`);
 
-// Stop polling
-function disconnect() {
-    chrome.alarms.clear('knowtif-poll');
-    chrome.storage.local.set({ connected: false });
-    chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => {});
-    console.log('Knowtif: Disconnected');
-}
-
-// Handle alarm for polling
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name === 'knowtif-poll') {
-        const stored = await chrome.storage.local.get('connected');
-        if (stored.connected) {
-            await pollMessages();
-        }
+    try {
+        await createOffscreenDocument();
+        
+        // Give the document a moment to load
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Tell offscreen document to start SSE
+        await chrome.runtime.sendMessage({ type: 'startSSE', url: url });
+        
+        isConnected = true;
+        await chrome.storage.local.set({ connected: true });
+        chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => {});
+        
+        return true;
+    } catch (error) {
+        console.error('Knowtif: Failed to connect', error);
+        return false;
     }
-});
+}
+
+// Disconnect
+async function disconnect() {
+    console.log('Knowtif: Disconnecting');
+    
+    try {
+        await chrome.runtime.sendMessage({ type: 'stopSSE' });
+    } catch (e) {
+        // Offscreen document might not exist
+    }
+    
+    await closeOffscreenDocument();
+    
+    isConnected = false;
+    await chrome.storage.local.set({ connected: false });
+    chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => {});
+}
 
 // Handle notification clicks
 chrome.notifications.onClicked.addListener(async (notificationId) => {
     const urlKey = `notif-${notificationId}`;
     const result = await chrome.storage.local.get(urlKey);
-
     if (result[urlKey]) {
         chrome.tabs.create({ url: result[urlKey] });
         await chrome.storage.local.remove(urlKey);
     }
-
     chrome.notifications.clear(notificationId);
 });
 
-// Handle messages from popup/options
+// Handle messages
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
+        // Messages from popup/options
         case 'connect':
-            connect().then(sendResponse);
+            connect().then(success => sendResponse(success));
             return true;
 
         case 'disconnect':
-            disconnect();
-            sendResponse(true);
-            break;
+            disconnect().then(() => sendResponse(true));
+            return true;
 
         case 'getStatus':
             chrome.storage.local.get('connected').then(result => {
@@ -311,15 +269,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'getPausedStatus':
             isPaused().then(paused => sendResponse(paused));
             return true;
+
+        // Messages from offscreen document
+        case 'sseConnected':
+            console.log('Knowtif: SSE connected (from offscreen)');
+            isConnected = true;
+            chrome.storage.local.set({ connected: true });
+            chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => {});
+            break;
+
+        case 'sseDisconnected':
+            console.log('Knowtif: SSE disconnected (from offscreen)');
+            isConnected = false;
+            chrome.storage.local.set({ connected: false });
+            chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => {});
+            break;
+
+        case 'sseMessage':
+            console.log('Knowtif: Message received', message.data);
+            if (message.data && message.data.event === 'message') {
+                showNotification(message.data);
+            }
+            break;
     }
 });
 
-// Initialize on install/startup
+// Initialize
 chrome.runtime.onInstalled.addListener(async () => {
     console.log('Knowtif: Extension installed');
-    // Set initial lastMessageTime to now so we don't get old messages
-    await chrome.storage.local.set({ lastMessageTime: Math.floor(Date.now() / 1000) });
-    
     const settings = await getSettings();
     if (settings.autoConnect && settings.ntfyTopic) {
         connect();
