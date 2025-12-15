@@ -1,10 +1,9 @@
 // Knowtif Browser Extension - Background Service Worker
-// Handles ntfy.sh SSE connection and notifications
+// Uses polling instead of SSE for Manifest V3 compatibility
 
-let eventSource = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 10;
-const RECONNECT_DELAY_BASE = 1000;
+let lastMessageTime = 0;
+let pollInterval = null;
+const POLL_INTERVAL_MS = 5000; // Poll every 5 seconds
 
 // Default settings
 const defaultSettings = {
@@ -27,11 +26,6 @@ const defaultSettings = {
 async function getSettings() {
     const result = await chrome.storage.sync.get('settings');
     return { ...defaultSettings, ...result.settings };
-}
-
-// Save settings
-async function saveSettings(settings) {
-    await chrome.storage.sync.set({ settings });
 }
 
 // Get notification history
@@ -64,7 +58,7 @@ async function updateBadge() {
 
     if (unreadCount > 0) {
         chrome.action.setBadgeText({ text: unreadCount.toString() });
-        chrome.action.setBadgeBackgroundColor({ color: '#e74c3c' });
+        chrome.action.setBadgeBackgroundColor({ color: '#f85149' });
     } else {
         chrome.action.setBadgeText({ text: '' });
     }
@@ -73,12 +67,12 @@ async function updateBadge() {
 // Parse notification type from tags
 function getNotificationType(tags) {
     if (!tags) return 'info';
-    const tagList = tags.split(',').map(t => t.trim().toLowerCase());
+    const tagList = Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim().toLowerCase());
 
-    if (tagList.some(t => ['white_check_mark', 'heavy_check_mark', 'rocket', 'tada', 'star'].includes(t))) {
+    if (tagList.some(t => ['white_check_mark', 'heavy_check_mark', 'rocket', 'tada', 'star', 'green_circle'].includes(t))) {
         return 'success';
     }
-    if (tagList.some(t => ['x', 'warning', 'rotating_light', 'fire', 'skull'].includes(t))) {
+    if (tagList.some(t => ['x', 'warning', 'rotating_light', 'fire', 'skull', 'red_circle'].includes(t))) {
         return 'failure';
     }
     return 'info';
@@ -110,11 +104,10 @@ async function showNotification(data) {
     // Skip browser notification if paused
     if (paused) {
         console.log('Knowtif: Notification paused, skipping popup');
-        // Still notify popup to update history
         chrome.runtime.sendMessage({
             type: 'notification',
             data: notification
-        }).catch(() => { });
+        }).catch(() => {});
         return;
     }
 
@@ -152,7 +145,58 @@ async function showNotification(data) {
     });
 }
 
-// Connect to ntfy.sh
+// Poll for new messages
+async function pollMessages() {
+    const settings = await getSettings();
+    
+    if (!settings.ntfyTopic) {
+        return;
+    }
+
+    try {
+        // Use since parameter to only get new messages
+        const since = lastMessageTime > 0 ? `since=${lastMessageTime}` : 'poll=1';
+        const url = `${settings.ntfyServer}/${settings.ntfyTopic}/json?${since}`;
+        
+        console.log('Knowtif: Polling', url);
+        
+        const response = await fetch(url);
+        const text = await response.text();
+        
+        if (!text.trim()) {
+            return;
+        }
+
+        // ntfy returns newline-delimited JSON
+        const lines = text.trim().split('\n');
+        
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            
+            try {
+                const data = JSON.parse(line);
+                console.log('Knowtif: Received', data);
+                
+                // Update last message time
+                if (data.time && data.time > lastMessageTime) {
+                    lastMessageTime = data.time;
+                    await chrome.storage.local.set({ lastMessageTime });
+                }
+                
+                // Only process actual messages
+                if (data.event === 'message') {
+                    await showNotification(data);
+                }
+            } catch (e) {
+                console.error('Knowtif: Error parsing message', e, line);
+            }
+        }
+    } catch (error) {
+        console.error('Knowtif: Poll error', error);
+    }
+}
+
+// Start polling
 async function connect() {
     const settings = await getSettings();
 
@@ -161,66 +205,44 @@ async function connect() {
         return false;
     }
 
-    // Disconnect existing connection
+    // Load last message time
+    const stored = await chrome.storage.local.get('lastMessageTime');
+    lastMessageTime = stored.lastMessageTime || Math.floor(Date.now() / 1000);
+    
+    console.log(`Knowtif: Starting polling for ${settings.ntfyTopic}`);
+    
+    // Stop any existing polling
     disconnect();
-
-    const url = `${settings.ntfyServer}/${settings.ntfyTopic}/sse`;
-    console.log(`Knowtif: Connecting to ${url}`);
-
-    try {
-        eventSource = new EventSource(url);
-
-        eventSource.onopen = () => {
-            console.log('Knowtif: Connected');
-            reconnectAttempts = 0;
-            chrome.storage.local.set({ connected: true });
-            chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => { });
-        };
-
-        // ntfy.sh sends events with 'event: message' type, so we need addEventListener
-        eventSource.addEventListener('message', (event) => {
-            try {
-                console.log('Knowtif: Received message', event.data);
-                const data = JSON.parse(event.data);
-                showNotification(data);
-            } catch (e) {
-                console.error('Knowtif: Error parsing message', e);
-            }
-        });
-
-        eventSource.onerror = (error) => {
-            console.error('Knowtif: Connection error', error);
-            eventSource.close();
-            eventSource = null;
-            chrome.storage.local.set({ connected: false });
-            chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => { });
-
-            // Attempt reconnect
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                reconnectAttempts++;
-                const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts - 1);
-                console.log(`Knowtif: Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
-                setTimeout(connect, delay);
-            }
-        };
-
-        return true;
-    } catch (error) {
-        console.error('Knowtif: Failed to connect', error);
-        return false;
-    }
+    
+    // Set up alarm for polling (works with MV3 service worker)
+    chrome.alarms.create('knowtif-poll', { periodInMinutes: 0.1 }); // Every 6 seconds
+    
+    // Also do immediate poll
+    await pollMessages();
+    
+    await chrome.storage.local.set({ connected: true });
+    chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => {});
+    
+    return true;
 }
 
-// Disconnect from ntfy.sh
+// Stop polling
 function disconnect() {
-    if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-        console.log('Knowtif: Disconnected');
-        chrome.storage.local.set({ connected: false });
-        chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => { });
-    }
+    chrome.alarms.clear('knowtif-poll');
+    chrome.storage.local.set({ connected: false });
+    chrome.runtime.sendMessage({ type: 'connectionChange', connected: false }).catch(() => {});
+    console.log('Knowtif: Disconnected');
 }
+
+// Handle alarm for polling
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === 'knowtif-poll') {
+        const stored = await chrome.storage.local.get('connected');
+        if (stored.connected) {
+            await pollMessages();
+        }
+    }
+});
 
 // Handle notification clicks
 chrome.notifications.onClicked.addListener(async (notificationId) => {
@@ -248,17 +270,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
 
         case 'getStatus':
-            sendResponse({ connected: eventSource !== null });
-            break;
-
-        case 'testNotification':
-            showNotification({
-                title: 'Test Notification',
-                message: 'This is a test notification from Knowtif!',
-                tags: 'white_check_mark'
+            chrome.storage.local.get('connected').then(result => {
+                sendResponse({ connected: result.connected || false });
             });
-            sendResponse(true);
-            break;
+            return true;
 
         case 'clearHistory':
             chrome.storage.local.set({ history: [] });
@@ -288,7 +303,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             isPaused().then(paused => {
                 const newPaused = !paused;
                 chrome.storage.local.set({ paused: newPaused });
-                chrome.runtime.sendMessage({ type: 'pauseChange', paused: newPaused }).catch(() => { });
+                chrome.runtime.sendMessage({ type: 'pauseChange', paused: newPaused }).catch(() => {});
                 sendResponse(newPaused);
             });
             return true;
@@ -302,6 +317,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Initialize on install/startup
 chrome.runtime.onInstalled.addListener(async () => {
     console.log('Knowtif: Extension installed');
+    // Set initial lastMessageTime to now so we don't get old messages
+    await chrome.storage.local.set({ lastMessageTime: Math.floor(Date.now() / 1000) });
+    
     const settings = await getSettings();
     if (settings.autoConnect && settings.ntfyTopic) {
         connect();
