@@ -84,9 +84,16 @@ function getNotificationType(tags) {
     return 'info';
 }
 
+// Check if notifications are paused
+async function isPaused() {
+    const result = await chrome.storage.local.get('paused');
+    return result.paused || false;
+}
+
 // Show browser notification
 async function showNotification(data) {
     const settings = await getSettings();
+    const paused = await isPaused();
 
     const type = getNotificationType(data.tags);
     const notification = {
@@ -97,8 +104,19 @@ async function showNotification(data) {
         repo: data.topic || null
     };
 
-    // Add to history
+    // Add to history (always, even when paused)
     await addToHistory(notification);
+
+    // Skip browser notification if paused
+    if (paused) {
+        console.log('Knowtif: Notification paused, skipping popup');
+        // Still notify popup to update history
+        chrome.runtime.sendMessage({
+            type: 'notification',
+            data: notification
+        }).catch(() => { });
+        return;
+    }
 
     // Show browser notification if enabled
     if (settings.popup.enabled) {
@@ -264,6 +282,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 updateBadge();
                 sendResponse(true);
             });
+            return true;
+
+        case 'togglePause':
+            isPaused().then(paused => {
+                const newPaused = !paused;
+                chrome.storage.local.set({ paused: newPaused });
+                chrome.runtime.sendMessage({ type: 'pauseChange', paused: newPaused }).catch(() => { });
+                sendResponse(newPaused);
+            });
+            return true;
+
+        case 'getPausedStatus':
+            isPaused().then(paused => sendResponse(paused));
             return true;
     }
 });

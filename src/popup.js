@@ -3,11 +3,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
     const connectBtn = document.getElementById('connectBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
     const testBtn = document.getElementById('testBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const notificationsDiv = document.getElementById('notifications');
     const clearBtn = document.getElementById('clearBtn');
     const markReadBtn = document.getElementById('markReadBtn');
+    const searchInput = document.getElementById('searchInput');
+    const pauseIndicator = document.getElementById('pauseIndicator');
+
+    let currentSearchQuery = '';
 
     // Check if topic is configured
     const result = await chrome.storage.sync.get('settings');
@@ -43,21 +48,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Update pause status UI
+    async function updatePauseStatus() {
+        const paused = await chrome.runtime.sendMessage({ type: 'getPausedStatus' });
+        if (paused) {
+            pauseBtn.textContent = 'Resume';
+            pauseBtn.classList.remove('btn-secondary');
+            pauseBtn.classList.add('btn-warning');
+            pauseIndicator.classList.add('show');
+        } else {
+            pauseBtn.textContent = 'Pause';
+            pauseBtn.classList.add('btn-secondary');
+            pauseBtn.classList.remove('btn-warning');
+            pauseIndicator.classList.remove('show');
+        }
+    }
+
     // Render notifications
     async function renderNotifications() {
         const result = await chrome.storage.local.get('history');
-        const history = result.history || [];
+        let history = result.history || [];
+
+        // Filter by search query
+        if (currentSearchQuery) {
+            const query = currentSearchQuery.toLowerCase();
+            history = history.filter(n =>
+                (n.title && n.title.toLowerCase().includes(query)) ||
+                (n.message && n.message.toLowerCase().includes(query)) ||
+                (n.repo && n.repo.toLowerCase().includes(query))
+            );
+        }
 
         if (history.length === 0) {
-            notificationsDiv.innerHTML = `
-                <div class="empty">
-                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                    <p>No notifications yet</p>
-                </div>
-            `;
+            if (currentSearchQuery) {
+                notificationsDiv.innerHTML = `
+                    <div class="no-results">
+                        <p>No notifications matching "${escapeHtml(currentSearchQuery)}"</p>
+                    </div>
+                `;
+            } else {
+                notificationsDiv.innerHTML = `
+                    <div class="empty">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <p>No notifications yet</p>
+                    </div>
+                `;
+            }
             return;
         }
 
@@ -157,6 +196,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         await chrome.runtime.sendMessage({ type: 'testNotification' });
     });
 
+    pauseBtn.addEventListener('click', async () => {
+        await chrome.runtime.sendMessage({ type: 'togglePause' });
+        updatePauseStatus();
+    });
+
+    // Search functionality with debounce
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentSearchQuery = searchInput.value.trim();
+            renderNotifications();
+        }, 200);
+    });
+
     settingsBtn.addEventListener('click', () => {
         chrome.runtime.openOptionsPage();
     });
@@ -181,10 +235,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderNotifications();
         } else if (message.type === 'connectionChange') {
             updateStatus();
+        } else if (message.type === 'pauseChange') {
+            updatePauseStatus();
         }
     });
 
     // Initial render
     updateStatus();
+    updatePauseStatus();
     renderNotifications();
 });

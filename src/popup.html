@@ -109,8 +109,63 @@
             background: #c0392b;
         }
 
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d68910;
+        }
+
+        .search-bar {
+            padding: 8px 16px;
+            background: #16213e;
+            border-bottom: 1px solid #2d2d44;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #2d2d44;
+            border-radius: 6px;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 12px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .pause-indicator {
+            display: none;
+            padding: 6px 16px;
+            background: rgba(243, 156, 18, 0.15);
+            border-bottom: 1px solid #2d2d44;
+            font-size: 11px;
+            color: #f39c12;
+            text-align: center;
+        }
+
+        .pause-indicator.show {
+            display: block;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+
         .notifications {
-            max-height: 350px;
+            max-height: 300px;
             overflow-y: auto;
         }
 
@@ -268,8 +323,15 @@
 
     <div class="actions">
         <button class="btn btn-primary" id="connectBtn">Connect</button>
+        <button class="btn btn-secondary" id="pauseBtn">Pause</button>
         <button class="btn btn-secondary" id="testBtn">Test</button>
         <button class="btn btn-secondary" id="settingsBtn">Settings</button>
+    </div>
+
+    <div class="pause-indicator" id="pauseIndicator">Notifications paused - new alerts will be saved but not shown</div>
+
+    <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Search notifications...">
     </div>
 
     <div class="notifications" id="notifications">
