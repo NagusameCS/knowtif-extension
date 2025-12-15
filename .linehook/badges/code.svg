@@ -1,20 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="114" height="20">
+<svg xmlns="http://www.w3.org/2000/svg" width="101" height="20">
   <defs>
-    <linearGradient id="grad-njvnvngt7" x2="0" y2="100%">
+    <linearGradient id="grad-x6k7mibbp" x2="0" y2="100%">
       <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
       <stop offset="1" stop-opacity=".1"/>
     </linearGradient>
-    <clipPath id="round"><rect width="114" height="20" rx="3" fill="#fff"/></clipPath>
+    <clipPath id="round"><rect width="101" height="20" rx="3" fill="#fff"/></clipPath>
   </defs>
   <g clip-path="url(#round)">
     <rect width="76" height="20" fill="#555"/>
-    <rect x="76" width="38" height="20" fill="#28a745"/>
-    <rect width="114" height="20" fill="url(#grad-njvnvngt7)"/>
+    <rect x="76" width="25" height="20" fill="#28a745"/>
+    <rect width="101" height="20" fill="url(#grad-x6k7mibbp)"/>
   </g>
   <g fill="#fff" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="11">
     <text x="38" y="15" fill="#010101" fill-opacity=".3">code lines</text>
     <text x="38" y="14">code lines</text>
-    <text x="95" y="15" fill="#010101" fill-opacity=".3">1.5K</text>
-    <text x="95" y="14">1.5K</text>
+    <text x="88.5" y="15" fill="#010101" fill-opacity=".3">2K</text>
+    <text x="88.5" y="14">2K</text>
   </g>
 </svg>

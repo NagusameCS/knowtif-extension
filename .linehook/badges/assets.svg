@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="70" height="20">
   <defs>
-    <linearGradient id="grad-o1dt54xzw" x2="0" y2="100%">
+    <linearGradient id="grad-wg0gy8lz8" x2="0" y2="100%">
       <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
       <stop offset="1" stop-opacity=".1"/>
     </linearGradient>
@@ -9,7 +9,7 @@
   <g clip-path="url(#round)">
     <rect width="51" height="20" fill="#555"/>
     <rect x="51" width="19" height="20" fill="#ec4899"/>
-    <rect width="70" height="20" fill="url(#grad-o1dt54xzw)"/>
+    <rect width="70" height="20" fill="url(#grad-wg0gy8lz8)"/>
   </g>
   <g fill="#fff" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="11">
     <text x="25.5" y="15" fill="#010101" fill-opacity=".3">assets</text>
