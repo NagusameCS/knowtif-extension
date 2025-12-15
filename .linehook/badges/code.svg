@@ -1,20 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="76" height="20">
+<svg xmlns="http://www.w3.org/2000/svg" width="114" height="20">
   <defs>
-    <linearGradient id="grad-n2hij52ss" x2="0" y2="100%">
+    <linearGradient id="grad-r1ybs0so6" x2="0" y2="100%">
       <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
       <stop offset="1" stop-opacity=".1"/>
     </linearGradient>
-    <clipPath id="round"><rect width="76" height="20" rx="3" fill="#fff"/></clipPath>
+    <clipPath id="round"><rect width="114" height="20" rx="3" fill="#fff"/></clipPath>
   </defs>
   <g clip-path="url(#round)">
-    <rect width="38" height="20" fill="#555"/>
-    <rect x="38" width="38" height="20" fill="#28a745"/>
-    <rect width="76" height="20" fill="url(#grad-n2hij52ss)"/>
+    <rect width="76" height="20" fill="#555"/>
+    <rect x="76" width="38" height="20" fill="#28a745"/>
+    <rect width="114" height="20" fill="url(#grad-r1ybs0so6)"/>
   </g>
   <g fill="#fff" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="11">
-    <text x="19" y="15" fill="#010101" fill-opacity=".3">code</text>
-    <text x="19" y="14">code</text>
-    <text x="57" y="15" fill="#010101" fill-opacity=".3">2.7K</text>
-    <text x="57" y="14">2.7K</text>
+    <text x="38" y="15" fill="#010101" fill-opacity=".3">code lines</text>
+    <text x="38" y="14">code lines</text>
+    <text x="95" y="15" fill="#010101" fill-opacity=".3">1.4K</text>
+    <text x="95" y="14">1.4K</text>
   </g>
 </svg>
