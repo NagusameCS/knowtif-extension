@@ -13,20 +13,6 @@ const defaultSettings = {
         duration: 5000,
         sound: true
     },
-    ticker: {
-        enabled: true,
-        position: 'top',
-        height: 32,
-        speed: 80,
-        backgroundColor: '#161b22',
-        textColor: '#e6edf3',
-        borderColor: '#30363d',
-        showIcon: true,
-        pauseOnHover: true,
-        opacity: 0.95,
-        fontSize: 13,
-        zIndex: 2147483647
-    },
     colors: {
         info: { background: '#388bfd', text: '#ffffff' },
         success: { background: '#3fb950', text: '#ffffff' },
@@ -113,29 +99,6 @@ async function showNotification(data) {
         console.log('Knowtif: Notification paused, skipping popup');
         chrome.runtime.sendMessage({ type: 'notification', data: notification }).catch(() => { });
         return;
-    }
-
-    // Send to all tabs for the news ticker
-    if (settings.ticker?.enabled) {
-        try {
-            const tabs = await chrome.tabs.query({});
-            console.log('Knowtif: Sending to tabs', tabs.length);
-            for (const tab of tabs) {
-                if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://') && !tab.url.startsWith('about:')) {
-                    console.log('Knowtif: Sending to tab', tab.id, tab.url);
-                    chrome.tabs.sendMessage(tab.id, {
-                        type: 'showNotification',
-                        notification: notification
-                    }).then(response => {
-                        console.log('Knowtif: Tab response', tab.id, response);
-                    }).catch(err => {
-                        console.log('Knowtif: Tab error (content script may not be loaded)', tab.id, err.message);
-                    });
-                }
-            }
-        } catch (e) {
-            console.error('Knowtif: Failed to send to tabs', e);
-        }
     }
 
     // Show system notification
@@ -337,38 +300,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-// Inject content script into all existing tabs
-async function injectContentScriptIntoAllTabs() {
-    try {
-        const tabs = await chrome.tabs.query({});
-        for (const tab of tabs) {
-            if (tab.id && tab.url && 
-                !tab.url.startsWith('chrome://') && 
-                !tab.url.startsWith('chrome-extension://') && 
-                !tab.url.startsWith('about:') &&
-                !tab.url.startsWith('edge://') &&
-                !tab.url.startsWith('moz-extension://')) {
-                try {
-                    await chrome.scripting.executeScript({
-                        target: { tabId: tab.id },
-                        files: ['content.js']
-                    });
-                    console.log('Knowtif: Injected content script into tab', tab.id);
-                } catch (e) {
-                    // Tab might not allow script injection
-                    console.log('Knowtif: Could not inject into tab', tab.id, e.message);
-                }
-            }
-        }
-    } catch (e) {
-        console.error('Knowtif: Failed to inject content scripts', e);
-    }
-}
-
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
     console.log('Knowtif: Extension installed');
-    await injectContentScriptIntoAllTabs();
     const settings = await getSettings();
     if (settings.autoConnect && settings.ntfyTopic) {
         connect();
