@@ -7,7 +7,7 @@
     "license": "MIT",
     "scripts": {
         "build": "mkdir -p dist && cp -r src/* dist/ && cp manifest.json dist/ && cp -r icons dist/",
-        "build:firefox": "mkdir -p dist-firefox && cp -r src/* dist-firefox/ && cp manifest-firefox.json dist-firefox/manifest.json && cp -r icons dist-firefox/",
+        "build:firefox": "mkdir -p dist-firefox && cp src-firefox/*.js dist-firefox/ && cp src/*.html dist-firefox/ && cp manifest-firefox.json dist-firefox/manifest.json && cp -r icons dist-firefox/",
         "package": "cd dist && zip -r ../knowtif-chrome.zip .",
         "package:firefox": "cd dist-firefox && zip -r ../knowtif-firefox.zip .",
         "clean": "rm -rf dist dist-firefox *.zip"
