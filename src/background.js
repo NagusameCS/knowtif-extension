@@ -177,16 +177,16 @@ async function connect() {
             chrome.runtime.sendMessage({ type: 'connectionChange', connected: true }).catch(() => { });
         };
 
-        eventSource.onmessage = (event) => {
+        // ntfy.sh sends events with 'event: message' type, so we need addEventListener
+        eventSource.addEventListener('message', (event) => {
             try {
+                console.log('Knowtif: Received message', event.data);
                 const data = JSON.parse(event.data);
-                if (data.event === 'message') {
-                    showNotification(data);
-                }
+                showNotification(data);
             } catch (e) {
                 console.error('Knowtif: Error parsing message', e);
             }
-        };
+        });
 
         eventSource.onerror = (error) => {
             console.error('Knowtif: Connection error', error);

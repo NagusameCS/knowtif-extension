@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusText = document.getElementById('statusText');
     const connectBtn = document.getElementById('connectBtn');
     const pauseBtn = document.getElementById('pauseBtn');
-    const testBtn = document.getElementById('testBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const notificationsDiv = document.getElementById('notifications');
     const clearBtn = document.getElementById('clearBtn');
@@ -190,10 +189,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             await chrome.runtime.sendMessage({ type: 'connect' });
         }
         setTimeout(updateStatus, 500);
-    });
-
-    testBtn.addEventListener('click', async () => {
-        await chrome.runtime.sendMessage({ type: 'testNotification' });
     });
 
     pauseBtn.addEventListener('click', async () => {
